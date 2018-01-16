@@ -4,10 +4,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"time"
 )
 
-func AddProgram(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Add Program!!!")
+var sourceCodesMap = make(map[int64]string)
+
+func AddSourceCode(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Add Source Code!!!")
 
 	code, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -17,29 +21,39 @@ func AddProgram(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	fmt.Print(string(code))
+	var id = int64(time.Now().UnixNano())
+	var pathToSourceCode = "receivedSourceCodes/" + strconv.FormatInt(id, 10) + ".go"
+
+	err = ioutil.WriteFile("receivedSourceCodes/"+strconv.FormatInt(id, 10)+".go", code, 0644)
+	if err != nil {
+		panic(err)
+	} else {
+		sourceCodesMap[id] = pathToSourceCode //it's not necessary in current implementation, but may by handy later
+	}
+
+	//fmt.Print(string(code))
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 
 }
 
-func CheckProgram(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Check Program!!!")
+func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Check Source Code!!!")
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
 
-func RunProgram(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Run Program!!!")
+func RunSourceCode(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Run Source Code!!!")
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
 
-func CompareProgram(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Compare Program!!!")
+func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Compare Source Code!!!")
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)

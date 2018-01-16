@@ -15,27 +15,27 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
-		"AddProgram",
+		"AddSourceCode",
 		"POST",
-		"/add_program",
-		AddProgram,
+		"/add_source_code",
+		AddSourceCode,
 	},
 	Route{
-		"CheckProgram",
+		"CheckSourceCode",
 		"POST",
-		"/check_program",
-		CheckProgram,
+		"/check_source_code",
+		CheckSourceCode,
 	},
 	Route{
-		"RunProgram",
+		"RunSourceCode",
 		"POST",
-		"/run_program",
-		RunProgram,
+		"/run_source_code",
+		RunSourceCode,
 	},
 	Route{
-		"CompareProgram",
+		"CompareSourceCode",
 		"POST",
-		"/compare_program",
-		CompareProgram,
+		"/compare_source_code",
+		CompareSourceCode,
 	},
 }

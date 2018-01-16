@@ -14,8 +14,8 @@ func main() {
 		panic(err)
 	}
 
-	addProgramUrl := "http://localhost:8080/add_program"
-	req, err := http.NewRequest("POST", addProgramUrl, bytes.NewBuffer(code))
+	addSourceCodeUrl := "http://localhost:8080/add_source_code"
+	req, err := http.NewRequest("POST", addSourceCodeUrl, bytes.NewBuffer(code))
 
 	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
