@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -8,10 +9,10 @@ import (
 	"time"
 )
 
-var sourceCodesMap = make(map[int64]string)
+var sourceCodesMap = make(map[uint64]string)
 
 func AddSourceCode(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Add Source Code!!!")
+	//fmt.Fprintf(w, "Add Source Code!!!")
 
 	code, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -21,10 +22,10 @@ func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	var id = int64(time.Now().UnixNano())
-	var pathToSourceCode = "receivedSourceCodes/" + strconv.FormatInt(id, 10) + ".go"
+	var id = uint64(time.Now().UnixNano())
+	var pathToSourceCode = "receivedSourceCodes/" + strconv.FormatUint(id, 10) + ".go"
 
-	err = ioutil.WriteFile("receivedSourceCodes/"+strconv.FormatInt(id, 10)+".go", code, 0644)
+	err = ioutil.WriteFile("receivedSourceCodes/"+strconv.FormatUint(id, 10)+".go", code, 0644)
 	if err != nil {
 		panic(err)
 	} else {
@@ -32,9 +33,12 @@ func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//fmt.Print(string(code))
+	idBuf := make([]byte, binary.MaxVarintLen64)
+	binary.PutUvarint(idBuf, id)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	w.Write(idBuf)
 
 }
 

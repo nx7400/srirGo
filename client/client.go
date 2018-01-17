@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 )
 
 func main() {
@@ -30,5 +32,8 @@ func main() {
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println("response Body:", string(body))
+
+	recivedId, _ := binary.Uvarint(body)
+
+	fmt.Println("response Body: recived Id:", strconv.FormatUint(recivedId, 10))
 }
