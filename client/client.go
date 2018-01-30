@@ -34,11 +34,11 @@ func addSourceCode(serverBaseUrl string) uint64 {
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	recivedId, _ := binary.Uvarint(body)
+	receivedId, _ := binary.Uvarint(body)
 
-	fmt.Println("response Body: recived Id:", strconv.FormatUint(recivedId, 10))
+	fmt.Println("response Body: received Id:", strconv.FormatUint(receivedId, 10))
 
-	return recivedId
+	return receivedId
 
 }
 
@@ -49,6 +49,8 @@ func main() {
 
 	serverBaseUrl := "http://" + *serverIpAddrPtr + ":8080"
 
-	recivedId := addSourceCode(serverBaseUrl)
+	receivedId := addSourceCode(serverBaseUrl)
+
+	_ = receivedId
 
 }
