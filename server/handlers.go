@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"strconv"
 	"time"
 )
@@ -43,7 +45,33 @@ func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Check Source Code!!!")
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	if err := r.Body.Close(); err != nil {
+		panic(err)
+	}
+
+	sourceCodeId, _ := binary.Uvarint(body)
+	pathToSourceCode := sourceCodesMap[sourceCodeId]
+
+	app := "go"
+	cmd := exec.Command(app, "run", pathToSourceCode)
+
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+		return
+	} else {
+		fmt.Println("Result: " + out.String() + "OK")
+	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)

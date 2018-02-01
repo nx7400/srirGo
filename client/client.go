@@ -42,6 +42,34 @@ func addSourceCode(serverBaseUrl string) uint64 {
 
 }
 
+func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
+
+	idBuf := make([]byte, binary.MaxVarintLen64)
+	binary.PutUvarint(idBuf, sourceCodeId)
+
+	checkSourceCodeUrl := serverBaseUrl + "/check_source_code"
+	req, err := http.NewRequest("POST", checkSourceCodeUrl, bytes.NewBuffer(idBuf))
+
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	fmt.Println("response Body:", body)
+
+	return true
+
+}
+
 func main() {
 
 	serverIpAddrPtr := flag.String("sa", "localhost", "a string")
@@ -52,5 +80,9 @@ func main() {
 	receivedId := addSourceCode(serverBaseUrl)
 
 	_ = receivedId
+
+	if checkSourceCode(serverBaseUrl, receivedId) {
+		fmt.Println("SUCCESS")
+	}
 
 }
