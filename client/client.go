@@ -70,7 +70,7 @@ func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	fmt.Println("response Body:", body)
+	//fmt.Println("response Body:", body)
 
 	var response SourceCodeResponse
 
@@ -79,14 +79,18 @@ func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 		panic(err)
 	}
 
+	// TODO refactor to swich
 	if response.Status == "SUCCESS" {
 		fmt.Println("Code Check Passed")
 		return true
-	} else {
+	} else if response.Status == "FAILED" {
+		fmt.Println("Code Check Failed. Output: " + response.Output)
+		return false
+	} else if response.Status == "NOT_FOUND" {
 		fmt.Println("Code Check Failed. Output: " + response.Output)
 		return false
 	}
-
+	return false
 }
 
 func main() {

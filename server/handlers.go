@@ -13,7 +13,7 @@ import (
 )
 
 type SourceCodeResponse struct {
-	Status string
+	Status string // TODO refactor to enum
 	Output string
 }
 
@@ -60,26 +60,31 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	sourceCodeId, _ := binary.Uvarint(body)
-	pathToSourceCode := sourceCodesMap[sourceCodeId] // TODO check if requested Id exist
-
-	app := "go"
-	cmd := exec.Command(app, "run", pathToSourceCode)
-
-	var out bytes.Buffer
-	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-
 	var response SourceCodeResponse
+	sourceCodeId, _ := binary.Uvarint(body)
+	pathToSourceCode, ok := sourceCodesMap[sourceCodeId] // TODO check if requested Id exist
 
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-		response = SourceCodeResponse{"FAILD", fmt.Sprint(err) + ": " + stderr.String()}
+	if !ok {
+		response = SourceCodeResponse{"NOT_FOUND", "Source Code Id: " + strconv.FormatUint(sourceCodeId, 10) + " not found"}
 	} else {
-		fmt.Println("Result: " + out.String() + "OK")
-		response = SourceCodeResponse{"SUCCESS", " "}
+
+		app := "go"
+		cmd := exec.Command(app, "build", pathToSourceCode)
+
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdout = &out
+		cmd.Stderr = &stderr
+
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+			response = SourceCodeResponse{"FAILED", fmt.Sprint(err) + ": " + stderr.String()}
+		} else {
+			fmt.Println("Result: " + out.String() + "OK")
+			response = SourceCodeResponse{"SUCCESS", " "}
+		}
+
 	}
 
 	js, err := json.Marshal(response)
