@@ -4,5 +4,7 @@
 
 ## Notes 
 
-Use following goviz fork:
+Use following goviz fork.
+```
 go get -u github.com/RobotsAndPencils/goviz
+```
