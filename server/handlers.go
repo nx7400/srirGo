@@ -78,10 +78,35 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func RunSourceCode(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Run Source Code!!!")
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	if err := r.Body.Close(); err != nil {
+		panic(err)
+	}
+
+	sourceCodeId, _ := binary.Uvarint(body)
+	pathToSourceCode := sourceCodesMap[sourceCodeId]
+
+	app := "go"
+    out, err := exec.Command(app, "run", pathToSourceCode).Output()
+
+    if err != nil {
+        fmt.Println("Run failed: " + err.Error())
+	    w.WriteHeader(http.StatusBadRequest)
+        return
+    } else {
+        fmt.Printf("Result: %s", out)
+	    w.WriteHeader(http.StatusOK)
+	    w.Write(out)
+    }
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	w.Write(out)
 }
 
 func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
