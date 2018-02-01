@@ -3,12 +3,18 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 )
+
+type SourceCodeResponse struct {
+	Status string
+	Output string
+}
 
 func addSourceCode(serverBaseUrl string) uint64 {
 
@@ -66,7 +72,20 @@ func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 
 	fmt.Println("response Body:", body)
 
-	return true
+	var response SourceCodeResponse
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		panic(err)
+	}
+
+	if response.Status == "SUCCESS" {
+		fmt.Println("Code Check Passed")
+		return true
+	} else {
+		fmt.Println("Code Check Failed. Output: " + response.Output)
+		return false
+	}
 
 }
 

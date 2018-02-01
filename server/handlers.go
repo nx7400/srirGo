@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +11,11 @@ import (
 	"strconv"
 	"time"
 )
+
+type SourceCodeResponse struct {
+	Status string
+	Output string
+}
 
 var sourceCodesMap = make(map[uint64]string)
 
@@ -55,7 +61,7 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	sourceCodeId, _ := binary.Uvarint(body)
-	pathToSourceCode := sourceCodesMap[sourceCodeId]
+	pathToSourceCode := sourceCodesMap[sourceCodeId] // TODO check if requested Id exist
 
 	app := "go"
 	cmd := exec.Command(app, "run", pathToSourceCode)
@@ -65,16 +71,29 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 	cmd.Stdout = &out
 	cmd.Stderr = &stderr
 
+	var response SourceCodeResponse
+
 	err = cmd.Run()
 	if err != nil {
 		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-		return
+		response = SourceCodeResponse{"FAILD", fmt.Sprint(err) + ": " + stderr.String()}
 	} else {
 		fmt.Println("Result: " + out.String() + "OK")
+		response = SourceCodeResponse{"SUCCESS", " "}
 	}
+
+	js, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	//os.Stdout.Write(js)
+	//fmt.Println("-v", response)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	w.Write(js)
 }
 
 func RunSourceCode(w http.ResponseWriter, r *http.Request) {
