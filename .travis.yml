@@ -6,6 +6,7 @@ go:
   - 1.9.x
 
 script:
-  cd server
-  go build
+  - go get -t github.com/gorilla/mux
+  - cd server && go build
+  - cd ../client && go build
 
