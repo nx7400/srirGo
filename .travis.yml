@@ -6,6 +6,6 @@ go:
   - 1.9.x
 
 script:
-  cd server
-  go build
+  - cd server
+  - go build
 
