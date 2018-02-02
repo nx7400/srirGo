@@ -18,6 +18,8 @@ type SourceCodeResponse struct {
 
 func addSourceCode(serverBaseUrl string) uint64 {
 
+	fmt.Println()
+
 	code, err := ioutil.ReadFile("codesToSend/testCode.go")
 	if err != nil {
 		panic(err)
@@ -42,13 +44,15 @@ func addSourceCode(serverBaseUrl string) uint64 {
 
 	receivedId, _ := binary.Uvarint(body)
 
-	fmt.Println("response Body: received Id:", strconv.FormatUint(receivedId, 10))
+	fmt.Println("Received source code Id:", strconv.FormatUint(receivedId, 10))
 
 	return receivedId
 
 }
 
 func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
+
+	fmt.Println()
 
 	idBuf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(idBuf, sourceCodeId)
@@ -93,6 +97,8 @@ func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 
 func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 
+	fmt.Println()
+
 	idBuf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(idBuf, sourceCodeId)
 
@@ -113,12 +119,12 @@ func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	fmt.Println("response Body:", body)
-
 	return string(body[:])
 }
+
 func compareSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 
+	fmt.Println()
 
 	idBuf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(idBuf, sourceCodeId)
@@ -139,8 +145,8 @@ func compareSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	
-var response SourceCodeResponse
+
+	var response SourceCodeResponse
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
@@ -163,11 +169,12 @@ func main() {
 
 	serverBaseUrl := "http://" + *serverIpAddrPtr + ":8080"
 
-
 	receivedId := addSourceCode(serverBaseUrl)
 
 	if checkSourceCode(serverBaseUrl, receivedId) {
-		fmt.Println(runSourceCode(serverBaseUrl, receivedId))
+		fmt.Println("Program output: " + runSourceCode(serverBaseUrl, receivedId))
+
+		compareSourceCode(serverBaseUrl, receivedId)
 	}
 
 }
