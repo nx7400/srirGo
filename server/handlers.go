@@ -116,17 +116,17 @@ func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 	pathToSourceCode := sourceCodesMap[sourceCodeId]
 
 	app := "go"
-    out, err := exec.Command(app, "run", pathToSourceCode).Output()
+	out, err := exec.Command(app, "run", pathToSourceCode).Output()
 
-    if err != nil {
-        fmt.Println("Run failed: " + err.Error())
-	    w.WriteHeader(http.StatusBadRequest)
-        return
-    } else {
-        fmt.Printf("Result: %s", out)
-	    w.WriteHeader(http.StatusOK)
-	    w.Write(out)
-    }
+	if err != nil {
+		fmt.Println("Run failed: " + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	} else {
+		fmt.Printf("Result: %s", out)
+		w.WriteHeader(http.StatusOK)
+		w.Write(out)
+	}
 }
 
 func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
