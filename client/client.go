@@ -70,8 +70,6 @@ func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	//fmt.Println("response Body:", body)
-
 	var response SourceCodeResponse
 
 	err = json.Unmarshal(body, &response)
@@ -117,7 +115,7 @@ func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 
 	fmt.Println("response Body:", body)
 
-    return string(body[:])
+	return string(body[:])
 }
 
 func main() {
@@ -129,11 +127,8 @@ func main() {
 
 	receivedId := addSourceCode(serverBaseUrl)
 
-	_ = receivedId
-
 	if checkSourceCode(serverBaseUrl, receivedId) {
-		fmt.Println("SUCCESS")
+		fmt.Println(runSourceCode(serverBaseUrl, receivedId))
 	}
 
-    fmt.Println(runSourceCode(serverBaseUrl, receivedId))
 }
