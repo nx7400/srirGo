@@ -141,6 +141,21 @@ func compareSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
+	
+var response SourceCodeResponse
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		panic(err)
+	}
+
+	if response.Status == "REPORT" {
+		fmt.Println("Report recived. Output: " + response.Output)
+		return true
+	} else {
+		fmt.Println("Invalid response")
+		return false
+	}
 }
 
 func main() {
