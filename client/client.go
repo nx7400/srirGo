@@ -16,9 +16,9 @@ type SourceCodeResponse struct {
 	Output string
 }
 
-func addSourceCode(serverBaseUrl string) uint64 {
+func addSourceCode(serverBaseUrl string, sourceCodePath string) uint64 {
 
-	code, err := ioutil.ReadFile("codesToSend/testCode.go")
+	code, err := ioutil.ReadFile(sourceCodePath)
 	if err != nil {
 		panic(err)
 	}
@@ -158,13 +158,15 @@ var response SourceCodeResponse
 
 func main() {
 
-	serverIpAddrPtr := flag.String("sa", "localhost", "a string")
+	serverIpAddrPtr := flag.String("sa", "localhost", "server address")
+    sourceCodePath := flag.String("src", "codesToSend/testCode.go", "source code path")
 	flag.Parse()
 
 	serverBaseUrl := "http://" + *serverIpAddrPtr + ":8080"
 
+    fmt.Println("Passing " + *sourceCodePath + " to process on " + serverBaseUrl)
 
-	receivedId := addSourceCode(serverBaseUrl)
+	receivedId := addSourceCode(serverBaseUrl, *sourceCodePath)
 
 	if checkSourceCode(serverBaseUrl, receivedId) {
 		fmt.Println(runSourceCode(serverBaseUrl, receivedId))
