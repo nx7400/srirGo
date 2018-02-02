@@ -23,6 +23,8 @@ type SourceCodeResponse struct {
 // Returns id received from the server.
 func addSourceCode(serverBaseUrl string, sourceCodePath string) uint64 {
 
+	fmt.Println()
+
 	code, err := ioutil.ReadFile(sourceCodePath)
 	if err != nil {
 		panic(err)
@@ -47,7 +49,7 @@ func addSourceCode(serverBaseUrl string, sourceCodePath string) uint64 {
 
 	receivedId, _ := binary.Uvarint(body)
 
-	fmt.Println("response Body: received Id:", strconv.FormatUint(receivedId, 10))
+	fmt.Println("Received source code Id:", strconv.FormatUint(receivedId, 10))
 
 	return receivedId
 
@@ -59,6 +61,8 @@ func addSourceCode(serverBaseUrl string, sourceCodePath string) uint64 {
 // sourceCodeId is a source code id.
 // Returns true if server has successfuly compiled source code, false otherwise.
 func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
+
+	fmt.Println()
 
 	idBuf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(idBuf, sourceCodeId)
@@ -107,6 +111,8 @@ func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 // Returns a string, which contains output produced by remote program. 
 func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 
+	fmt.Println()
+
 	idBuf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(idBuf, sourceCodeId)
 
@@ -127,8 +133,6 @@ func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	fmt.Println("response Body:", body)
-
 	return string(body[:])
 }
 
@@ -137,6 +141,7 @@ func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 // sourceCodeId is a source code id.
 func compareSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 
+	fmt.Println()
 
 	idBuf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(idBuf, sourceCodeId)
@@ -157,8 +162,8 @@ func compareSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 	fmt.Println("response Status:", resp.Status)
 	fmt.Println("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
-	
-var response SourceCodeResponse
+
+	var response SourceCodeResponse
 
 	err = json.Unmarshal(body, &response)
 	if err != nil {
@@ -177,17 +182,19 @@ var response SourceCodeResponse
 func main() {
 
 	serverIpAddrPtr := flag.String("sa", "localhost", "server address")
-    sourceCodePath := flag.String("src", "codesToSend/testCode.go", "source code path")
+	sourceCodePath := flag.String("src", "codesToSend/testCode.go", "source code path")
 	flag.Parse()
 
 	serverBaseUrl := "http://" + *serverIpAddrPtr + ":8080"
 
-    fmt.Println("Passing " + *sourceCodePath + " to process on " + serverBaseUrl)
+	fmt.Println("Passing " + *sourceCodePath + " to process on " + serverBaseUrl)
 
 	receivedId := addSourceCode(serverBaseUrl, *sourceCodePath)
 
 	if checkSourceCode(serverBaseUrl, receivedId) {
-		fmt.Println(runSourceCode(serverBaseUrl, receivedId))
+		fmt.Println("Program output: " + runSourceCode(serverBaseUrl, receivedId))
+
+		compareSourceCode(serverBaseUrl, receivedId)
 	}
 
 }

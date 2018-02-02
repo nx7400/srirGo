@@ -86,3 +86,26 @@ func runSourceCodeRequest(t *testing.T, sourceCodeId uint64) *httptest.ResponseR
 	handler.ServeHTTP(rr, req)
 	return rr
 }
+
+func TestCompareSourceCode(t *testing.T) {
+
+	var sourceCodeId = uint64(time.Now().UnixNano())
+
+	idBuf := make([]byte, binary.MaxVarintLen64)
+	binary.PutUvarint(idBuf, sourceCodeId)
+
+	req, err := http.NewRequest("POST", "/add_source_code", bytes.NewBuffer(idBuf))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	handler := http.HandlerFunc(CompareSourceCode)
+
+	handler.ServeHTTP(rr, req)
+
+	//Check status code
+	if status := rr.Code; status != http.StatusOK {
+		t.Errorf("Handler AddSourceCode returned wrong status code: got %v want %v", status, http.StatusOK)
+	}
+}

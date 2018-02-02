@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+
 	"github.com/hattya/go.diff"
 )
 
@@ -25,7 +26,8 @@ var sourceCodesMap = make(map[uint64]string)
 // adds it to database and if no error occurs assigns id and sends it back to the client
 // within w HTTP response. HTTP StatusOK is set if source code has been successfuly added.
 func AddSourceCode(w http.ResponseWriter, r *http.Request) {
-	//fmt.Fprintf(w, "Add Source Code!!!")
+
+	fmt.Println()
 
 	code, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -42,10 +44,10 @@ func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	} else {
-		sourceCodesMap[id] = pathToSourceCode //it's not necessary in current implementation, but may by handy later
+		sourceCodesMap[id] = pathToSourceCode
+		fmt.Println("Added source code with id: " + strconv.FormatUint(id, 10))
 	}
 
-	//fmt.Print(string(code))
 	idBuf := make([]byte, binary.MaxVarintLen64)
 	binary.PutUvarint(idBuf, id)
 
@@ -62,6 +64,8 @@ func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 // HTTP status is set to StatusInternalServerError. Otherwise StatusOK is being sent.  
 func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println()
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
@@ -72,7 +76,7 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 
 	var response SourceCodeResponse
 	sourceCodeId, _ := binary.Uvarint(body)
-	pathToSourceCode, ok := sourceCodesMap[sourceCodeId] // TODO check if requested Id exist
+	pathToSourceCode, ok := sourceCodesMap[sourceCodeId]
 
 	if !ok {
 		response = SourceCodeResponse{"NOT_FOUND", "Source Code Id: " + strconv.FormatUint(sourceCodeId, 10) + " not found"}
@@ -88,10 +92,10 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 
 		err = cmd.Run()
 		if err != nil {
-			fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
+			fmt.Println("Build result: " + fmt.Sprint(err) + ": " + stderr.String())
 			response = SourceCodeResponse{"FAILED", fmt.Sprint(err) + ": " + stderr.String()}
 		} else {
-			fmt.Println("Result: " + out.String() + "OK")
+			fmt.Println("Build result: " + out.String() + "OK")
 			response = SourceCodeResponse{"SUCCESS", " "}
 		}
 
@@ -103,9 +107,6 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//os.Stdout.Write(js)
-	//fmt.Println("-v", response)
-
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
@@ -115,6 +116,9 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 // catched and send back to the client within HTTP response. If program has failed
 // to execute HTTP status is set to StatusBadRequest. Otherwise it is set to StatusOK. 
 func RunSourceCode(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println()
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -136,7 +140,7 @@ func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
-		fmt.Printf("Result: %s", out)
+		fmt.Printf("Program result: %s", out)
 		w.WriteHeader(http.StatusOK)
 		w.Write(out)
 	}
@@ -146,6 +150,9 @@ func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 // In case of error HTTP status is set to StatusInternalServerError. Otherwise it is
 // being set to StatusOK. 
 func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
+
+	fmt.Println()
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
@@ -181,6 +188,8 @@ func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
 			response = SourceCodeResponse{"REPORT", "Difference between codes: " + strconv.Itoa(diff) + " bytes"}
 		}
 
+		fmt.Println("Compare result: " + response.Output)
+
 	}
 
 	js, err := json.Marshal(response)
@@ -192,5 +201,5 @@ func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
-}
 
+}
