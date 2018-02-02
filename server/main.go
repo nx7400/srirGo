@@ -5,6 +5,7 @@ import (
 	"net/http"
 )
 
+// Main function of server.
 func main() {
 
 	router := NewRouter()

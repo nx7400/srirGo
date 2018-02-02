@@ -11,11 +11,16 @@ import (
 	"strconv"
 )
 
+// Source code response.
 type SourceCodeResponse struct {
 	Status string
 	Output string
 }
 
+// addSourceCode sends request to the server to add source code to the database.
+// serverBaseUrl is an URL of the server.
+// sourceCodePath is a path to the source code that should be send to the server.
+// Returns id received from the server.
 func addSourceCode(serverBaseUrl string, sourceCodePath string) uint64 {
 
 	code, err := ioutil.ReadFile(sourceCodePath)
@@ -48,6 +53,11 @@ func addSourceCode(serverBaseUrl string, sourceCodePath string) uint64 {
 
 }
 
+// checkSource code checks sends request to the server to check given source code for
+// compile errors.
+// serverBaseUrl is an URL of the server.
+// sourceCodeId is a source code id.
+// Returns true if server has successfuly compiled source code, false otherwise.
 func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 
 	idBuf := make([]byte, binary.MaxVarintLen64)
@@ -91,6 +101,10 @@ func checkSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 	return false
 }
 
+// runSourceCode sends a request to the server to make an attempt to run given source code.
+// serverBaseUrl is an URL of the server.
+// sourceCodeId is a source code id.
+// Returns a string, which contains output produced by remote program. 
 func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 
 	idBuf := make([]byte, binary.MaxVarintLen64)
@@ -117,6 +131,10 @@ func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 
 	return string(body[:])
 }
+
+// compareSourceCode sends a request to compare given source code.
+// serverBaseUrl is an URL of the server.
+// sourceCodeId is a source code id.
 func compareSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
 
 

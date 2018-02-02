@@ -13,6 +13,7 @@ import (
 	"github.com/hattya/go.diff"
 )
 
+// Source code response.
 type SourceCodeResponse struct {
 	Status string // TODO refactor to enum
 	Output string
@@ -20,6 +21,9 @@ type SourceCodeResponse struct {
 
 var sourceCodesMap = make(map[uint64]string)
 
+// AddSourceCode adds source code to the database. Processes source code passed within r HTTP request
+// adds it to database and if no error occurs assigns id and sends it back to the client
+// within w HTTP response. HTTP StatusOK is set if source code has been successfuly added.
 func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 	//fmt.Fprintf(w, "Add Source Code!!!")
 
@@ -51,6 +55,11 @@ func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// CheckSourceCode checks source code denoted by an id sent within r HTTP request. Makes an attempt to compile
+// program. If source code has been not found, then "NOT_FOUND" message is sent inside a body of
+// HTTP response. If source code failed to compile, then "FAILED" message is sent. If source
+// code was compiled succesfuly "SUCCESS" message is being send. In case of error 
+// HTTP status is set to StatusInternalServerError. Otherwise StatusOK is being sent.  
 func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
@@ -102,6 +111,9 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+// RunSourceCode runs source code denoted by an id sent within r HTTP request. Standard output is
+// catched and send back to the client within HTTP response. If program has failed
+// to execute HTTP status is set to StatusBadRequest. Otherwise it is set to StatusOK. 
 func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -130,6 +142,9 @@ func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// CompareSourceCode compares given source codes.
+// In case of error HTTP status is set to StatusInternalServerError. Otherwise it is
+// being set to StatusOK. 
 func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
