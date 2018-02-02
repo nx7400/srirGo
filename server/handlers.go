@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strconv"
 	"time"
+	"github.com/hattya/go.diff"
 )
 
 type SourceCodeResponse struct {
@@ -130,8 +131,51 @@ func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Compare Source Code!!!")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	if err := r.Body.Close(); err != nil {
+		panic(err)
+	}
+
+	var response SourceCodeResponse
+	sourceCodeId, _ := binary.Uvarint(body)
+	pathToSourceCode, ok := sourceCodesMap[sourceCodeId]
+	if !ok {
+		response = SourceCodeResponse{"NOT_FOUND", "Source Code Id: " + strconv.FormatUint(sourceCodeId, 10) + " not found"}
+	} else {
+
+		code1, err := ioutil.ReadFile(pathToSourceCode)
+		if err != nil {
+			panic(err)
+		}
+
+		code2, err2 := ioutil.ReadFile("receivedSourceCodes/1517531559919090900.go")
+		if err2 != nil {
+			panic(err2)
+		}
+
+		df := diff.Bytes(code1, code2)
+
+		diff := df[0].Del + df[0].Ins
+
+		if diff == 0 {
+			response = SourceCodeResponse{"REPORT", "Source codes are the same"}
+		} else {
+			response = SourceCodeResponse{"REPORT", "Difference between codes: " + strconv.Itoa(diff) + " bytes"}
+		}
+
+	}
+
+	js, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+	w.Write(js)
 }
+
