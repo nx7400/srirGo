@@ -130,8 +130,15 @@ func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 }
 
 func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Compare Source Code!!!")
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	if err := r.Body.Close(); err != nil {
+		panic(err)
+	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	var response SourceCodeResponse
+	sourceCodeId, _ := binary.Uvarint(body)
+	pathToSourceCode, ok := sourceCodesMap[sourceCodeId]
 }
