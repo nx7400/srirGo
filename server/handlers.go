@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hattya/go.diff"
+	diff "github.com/hattya/go.diff"
 )
 
 // Source code response.
@@ -21,6 +21,7 @@ type SourceCodeResponse struct {
 }
 
 var sourceCodesMap = make(map[uint64]string)
+var lastSourceCodeId = uint64(0)
 
 // AddSourceCode adds source code to the database. Processes source code passed within r HTTP request
 // adds it to database and if no error occurs assigns id and sends it back to the client
@@ -60,8 +61,8 @@ func AddSourceCode(w http.ResponseWriter, r *http.Request) {
 // CheckSourceCode checks source code denoted by an id sent within r HTTP request. Makes an attempt to compile
 // program. If source code has been not found, then "NOT_FOUND" message is sent inside a body of
 // HTTP response. If source code failed to compile, then "FAILED" message is sent. If source
-// code was compiled succesfuly "SUCCESS" message is being send. In case of error 
-// HTTP status is set to StatusInternalServerError. Otherwise StatusOK is being sent.  
+// code was compiled succesfuly "SUCCESS" message is being send. In case of error
+// HTTP status is set to StatusInternalServerError. Otherwise StatusOK is being sent.
 func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println()
@@ -114,7 +115,7 @@ func CheckSourceCode(w http.ResponseWriter, r *http.Request) {
 
 // RunSourceCode runs source code denoted by an id sent within r HTTP request. Standard output is
 // catched and send back to the client within HTTP response. If program has failed
-// to execute HTTP status is set to StatusBadRequest. Otherwise it is set to StatusOK. 
+// to execute HTTP status is set to StatusBadRequest. Otherwise it is set to StatusOK.
 func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println()
@@ -148,7 +149,7 @@ func RunSourceCode(w http.ResponseWriter, r *http.Request) {
 
 // CompareSourceCode compares given source codes.
 // In case of error HTTP status is set to StatusInternalServerError. Otherwise it is
-// being set to StatusOK. 
+// being set to StatusOK.
 func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println()
@@ -173,14 +174,31 @@ func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		code2, err2 := ioutil.ReadFile("receivedSourceCodes/1517531559919090900.go")
-		if err2 != nil {
-			panic(err2)
+		var code2 []byte
+
+		if lastSourceCodeId == 0 {
+			code2 = []byte("A")
+		} else {
+			pathToComparedSourceCode, ok := sourceCodesMap[lastSourceCodeId]
+
+			if !ok {
+				fmt.Println("NOT FOUND", strconv.FormatUint(lastSourceCodeId, 10))
+			} else {
+				fmt.Println("FOUND", strconv.FormatUint(lastSourceCodeId, 10))
+			}
+
+			code2, err = ioutil.ReadFile(pathToComparedSourceCode)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		df := diff.Bytes(code1, code2)
 
-		diff := df[0].Del + df[0].Ins
+		var diff = int(0)
+		if len(df) != 0 {
+			diff = df[0].Del + df[0].Ins
+		}
 
 		if diff == 0 {
 			response = SourceCodeResponse{"REPORT", "Source codes are the same"}
@@ -201,5 +219,7 @@ func CompareSourceCode(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
+
+	lastSourceCodeId = sourceCodeId
 
 }
