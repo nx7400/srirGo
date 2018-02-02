@@ -117,6 +117,44 @@ func runSourceCode(serverBaseUrl string, sourceCodeId uint64) string {
 
 	return string(body[:])
 }
+func compareSourceCode(serverBaseUrl string, sourceCodeId uint64) bool {
+
+
+	idBuf := make([]byte, binary.MaxVarintLen64)
+	binary.PutUvarint(idBuf, sourceCodeId)
+
+	checkSourceCodeUrl := serverBaseUrl + "/compare_source_code"
+	req, err := http.NewRequest("POST", checkSourceCodeUrl, bytes.NewBuffer(idBuf))
+
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("response Status:", resp.Status)
+	fmt.Println("response Headers:", resp.Header)
+	body, _ := ioutil.ReadAll(resp.Body)
+	
+var response SourceCodeResponse
+
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		panic(err)
+	}
+
+	if response.Status == "REPORT" {
+		fmt.Println("Report recived. Output: " + response.Output)
+		return true
+	} else {
+		fmt.Println("Invalid response")
+		return false
+	}
+}
 
 func main() {
 
@@ -124,6 +162,7 @@ func main() {
 	flag.Parse()
 
 	serverBaseUrl := "http://" + *serverIpAddrPtr + ":8080"
+
 
 	receivedId := addSourceCode(serverBaseUrl)
 
